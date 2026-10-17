@@ -31,8 +31,8 @@ window.SITE_CONFIG = {
      email is sent to this RM. */
   DEFAULT_DEVELOPER_NAME: "Mangalam Group",
 
-  DEFAULT_MANAGER_NAME: "Amit",
-  DEFAULT_MANAGER_EMAIL: "amit.housingmantrapune@gmail.com"
+  DEFAULT_MANAGER_NAME: "Rishabh Gohara",
+  DEFAULT_MANAGER_EMAIL: "rishabh.housingmantra@gmail.com"
 
   /* NOTE ON EMAIL ROUTING:
      Every new enquiry row is emailed (by a database trigger and the

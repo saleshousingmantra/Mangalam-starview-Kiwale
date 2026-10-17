@@ -36,10 +36,12 @@
  */
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { type Detail, escapeHtml, renderHtml } from "./template.ts";
 
 const DEFAULT_ALLOWED = [
   "amit.housingmantrapune@gmail.com",
   "manikhousingmantrapune@gmail.com",
+  "rishabh.housingmantra@gmail.com",
 ];
 const DEFAULT_FALLBACK = "sales.housingmantra@gmail.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,97 +88,6 @@ function jsonbStrings(value: unknown): string[] {
 
 function text(value: unknown): string {
   return value === null || value === undefined ? "" : String(value).trim();
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/* EMAIL TEMPLATE — dark red / soft red / light black theme.
-   Table layout + inline styles only, so it renders in Gmail,
-   Outlook and phone mail apps alike. */
-const C = {
-  darkRed: "#8b1e1e",
-  softRed: "#fbe9e7",
-  softRedAlt: "#fdf6f5",
-  page: "#fdf3f2",
-  line: "#f1d4d1",
-  rowLine: "#f6e3e1",
-  pink: "#f6c9c4",
-  text: "#3a3a3a",
-  textStrong: "#2b2b2b",
-  textMuted: "#555555",
-  label: "#777777",
-};
-
-function renderHtml(o: {
-  project: string;
-  subtitle: string;
-  greeting: string;
-  note: string;
-  name: string;
-  phoneDisplay: string;
-  callHref: string;
-  whatsappHref: string;
-  details: [string, string, string?][];
-}): string {
-  const btn = (href: string, label: string, primary: boolean) =>
-    href
-      ? `<a href="${escapeHtml(href)}" style="display:inline-block;${
-        primary
-          ? `background:${C.darkRed};color:#ffffff;padding:10px 18px;`
-          : `background:#ffffff;color:${C.darkRed};border:1px solid #d9827a;padding:9px 18px;`
-      }text-decoration:none;font-size:14px;font-weight:bold;border-radius:6px;margin:0 8px 8px 0">${label}</a>`
-      : "";
-
-  const detailRows = o.details
-    .map(([label, value, href], i) => {
-      const bg = i % 2 ? `background:${C.softRedAlt};` : "";
-      const border = i < o.details.length - 1 ? `border-bottom:1px solid ${C.rowLine};` : "";
-      const v = escapeHtml(value);
-      const cell = href ? `<a href="${escapeHtml(href)}" style="color:${C.darkRed}">${v}</a>` : v;
-      return `<tr><td style="padding:10px 14px;color:${C.label};width:40%;${bg}${border}">${label}</td>` +
-        `<td style="padding:10px 14px;color:${C.textStrong};font-weight:bold;word-break:break-word;${bg}${border}">${cell}</td></tr>`;
-    })
-    .join("");
-
-  const sectionTitle = (t: string) =>
-    `<div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:${C.darkRed};font-weight:bold">${t}</div>`;
-
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:${C.page}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid ${C.line};font-family:Arial,Helvetica,sans-serif;color:${C.text}">
-<tr><td style="background:${C.darkRed};padding:24px 28px">
-  <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${C.pink}">New enquiry</div>
-  <div style="font-size:22px;font-weight:bold;color:#ffffff;margin-top:6px">${escapeHtml(o.project)}</div>
-  <div style="font-size:13px;color:${C.pink};margin-top:4px">${escapeHtml(o.subtitle)}</div>
-</td></tr>
-<tr><td style="padding:24px 28px 8px">
-  <p style="margin:0 0 8px;font-size:15px;color:${C.text}">${o.greeting}</p>
-  <p style="margin:0;font-size:14px;line-height:1.6;color:${C.textMuted}">A new enquiry has been received. ${o.note}</p>
-</td></tr>
-<tr><td style="padding:16px 28px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.softRed};border-left:4px solid ${C.darkRed};border-radius:8px"><tr><td style="padding:18px 20px">
-    ${sectionTitle("Customer")}
-    <div style="font-size:20px;font-weight:bold;color:${C.textStrong};margin-top:4px">${escapeHtml(o.name)}</div>
-    <div style="font-size:15px;color:${C.text};margin-top:4px">${escapeHtml(o.phoneDisplay)}</div>
-    <div style="margin-top:14px">${btn(o.callHref, "&#9742; Call now", true)}${btn(o.whatsappHref, "WhatsApp", false)}</div>
-  </td></tr></table>
-</td></tr>
-<tr><td style="padding:8px 28px 24px">
-  <div style="margin-bottom:8px">${sectionTitle("Enquiry details")}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${C.line};border-radius:8px;border-collapse:separate;font-size:14px">${detailRows}</table>
-</td></tr>
-<tr><td style="background:${C.softRed};padding:14px 28px;font-size:12px;color:${C.label};text-align:center">
-  Housing Mantra &middot; Automatic enquiry notification. Reply to this email to contact the customer.
-</td></tr>
-</table></td></tr></table></body></html>`;
 }
 
 async function markRow(id: number, status: string, sentTo: string | null) {
@@ -265,7 +176,7 @@ Deno.serve(async (req) => {
     timeStyle: "short",
   }).format(new Date(row.created_at || Date.now()));
 
-  const rows: [string, string, string?][] = [
+  const rows: Detail[] = [
     ["Name", name],
     ["Phone", text(row.phone), phone ? `tel:+${waPhone}` : undefined],
     ["WhatsApp", phone ? `+${waPhone}` : "", phone ? `https://wa.me/${waPhone}` : undefined],
@@ -273,7 +184,7 @@ Deno.serve(async (req) => {
     ["Interested in", text(row.interest)],
     ["Project", project],
     ["Developer", text(row.developer)],
-    ["Relationship Manager", managerName],
+    ["RM", managerName],
     ["Source", text(row.source) || (row.meta_lead_id ? `Meta ${text(row.meta_platform)}`.trim() : "")],
     ["Page", sourceLink, sourceLink.startsWith("http") ? sourceLink : undefined],
     ["Meta campaign", text(row.meta_campaign_name)],
@@ -285,26 +196,27 @@ Deno.serve(async (req) => {
 
   const greeting = toRM && managerName ? `Hi ${escapeHtml(managerName)},` : "Hi,";
   const note = toRM
-    ? "Please contact the customer at the earliest."
-    : "This enquiry has no assigned Relationship Manager.";
+    ? "please contact the customer at the earliest."
+    : "this enquiry has no assigned Relationship Manager.";
 
   const htmlContent = renderHtml({
     project,
-    subtitle: [text(row.developer), `${receivedAt} IST`].filter(Boolean).join(" · "),
+    developer: text(row.developer),
+    receivedAt: `${receivedAt} IST`,
     greeting,
     note,
     name,
     phoneDisplay: phone.length === 10 ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : text(row.phone),
     callHref: phone ? `tel:+${waPhone}` : "",
     whatsappHref: phone ? `https://wa.me/${waPhone}` : "",
-    // Name / phone / WhatsApp are shown in the customer card instead
+    // Shown in the header / customer card instead of the details table
     details: rows.filter(([label, value]) =>
-      value && !["Name", "Phone", "WhatsApp", "Received"].includes(label)
+      value && !["Name", "Phone", "WhatsApp", "Project", "Developer", "Received"].includes(label)
     ),
   });
 
   const textContent = [
-    `New enquiry for ${project}. ${note}`,
+    `New enquiry for ${project}. ${greeting} ${note}`,
     "",
     ...rows.filter(([, v]) => v).map(([label, value]) => `${label}: ${value}`),
   ].join("\n");
