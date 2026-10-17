@@ -49,28 +49,28 @@ document.addEventListener('DOMContentLoaded', function () {
      from config.js so there is one place to change any of them,
      instead of editing each form in index.html. Falls back to
      whatever is already in the HTML if config.js hasn't loaded.
-     Project/Developer are shown to the visitor (readonly, so they
-     can see which project and builder they're enquiring about)
-     as well as sent with the enquiry. */
+     Project and Relationship Manager are shown to the visitor as
+     readonly fields, as well as sent with the enquiry. defaultValue
+     is set too so form.reset() after a submit keeps these values. */
   var cfg = window.SITE_CONFIG || {};
   if (cfg.PROJECT_NAME) {
     document.querySelectorAll('[name="project"]').forEach(function (el) {
-      el.value = cfg.PROJECT_NAME;
+      el.defaultValue = el.value = cfg.PROJECT_NAME;
     });
   }
   if (cfg.DEFAULT_DEVELOPER_NAME) {
     document.querySelectorAll('[name="developer"]').forEach(function (el) {
-      el.value = cfg.DEFAULT_DEVELOPER_NAME;
+      el.defaultValue = el.value = cfg.DEFAULT_DEVELOPER_NAME;
     });
   }
   if (cfg.DEFAULT_MANAGER_NAME) {
     document.querySelectorAll('[name="manager_name"]').forEach(function (el) {
-      el.value = cfg.DEFAULT_MANAGER_NAME;
+      el.defaultValue = el.value = cfg.DEFAULT_MANAGER_NAME;
     });
   }
   if (cfg.DEFAULT_MANAGER_EMAIL) {
     document.querySelectorAll('[name="manager_email"]').forEach(function (el) {
-      el.value = cfg.DEFAULT_MANAGER_EMAIL;
+      el.defaultValue = el.value = cfg.DEFAULT_MANAGER_EMAIL;
     });
   }
 

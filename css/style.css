@@ -1594,3 +1594,33 @@ textarea.form-control {
 .page-loader-bar.is-done {
     opacity: 0;
 }
+
+/* Project + Relationship Manager shown in each enquiry form (readonly) */
+.form-locked {
+    display: grid;
+    gap: .5rem;
+    margin-bottom: .75rem
+}
+
+.form-locked-field {
+    display: block;
+    margin: 0
+}
+
+.form-locked-field span {
+    display: block;
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: .2rem
+}
+
+.form-locked-field .form-control {
+    height: 2.5rem;
+    background: #f4f4f4;
+    color: #333;
+    font-weight: 600;
+    cursor: default;
+    pointer-events: none
+}
