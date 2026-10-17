@@ -18,10 +18,9 @@ window.SITE_CONFIG = {
   SUPABASE_ANON_KEY:
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnenB5dG9jeGhqenhzb3Brcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjg0MDcsImV4cCI6MjEwMTUwNDQwN30.pMm_t48EOxFd2pnbu2gy4y7EK8fzmem3H4zbbpiqNJ4",
 
-  /* Google Apps Script — used only to send an email notification
-     whenever a new enquiry row is inserted into Supabase */
-  EMAIL_SERVICE_URL:
-    "https://script.google.com/macros/s/AKfycby9AvGtTt3mNDSfOX3kuJfgqyy7z8a40ZH_U2JAA80NEAAVOw7-l0iiy5FBZKiSeRuy/exec",
+  /* Supabase Edge Function that emails each new enquiry to the
+     assigned Relationship Manager (via Brevo) */
+  EMAIL_FUNCTION_NAME: "send-enquiry-email",
 
   /* Supabase table that stores enquiries */
   SUPABASE_TABLE: "enquiries",
@@ -32,20 +31,19 @@ window.SITE_CONFIG = {
   /* Default Relationship Manager assigned to every enquiry.
      Change these two values to reassign — index.js fills every
      "Relationship Manager" field on the page from here, and
-     manager_email travels with each enquiry so it can be shown
-     in the notification email as reference info. */
+     manager_email travels with each enquiry so the notification
+     email is sent to this RM. */
   DEFAULT_DEVELOPER_NAME: "Mangalam Group",
 
   DEFAULT_MANAGER_NAME: "Amit",
   DEFAULT_MANAGER_EMAIL: "amit.housingmantrapune@gmail.com"
 
   /* NOTE ON EMAIL ROUTING:
-     Who actually receives/CCs the enquiry notification is NOT
-     configured here. config.js runs in the browser, so anything
-     here could be read or spoofed by anyone calling the Apps
-     Script URL directly. The receiver + CC list are fixed
-     constants inside apps-script/Code.gs instead — edit them
-     there and redeploy. */
+     The enquiry email goes to DEFAULT_MANAGER_EMAIL, but only if
+     that address is listed in the ALLOWED_MANAGER_EMAILS secret of
+     the send-enquiry-email function (config.js runs in the browser
+     and can be spoofed). Otherwise it goes to FALLBACK_EMAIL. When
+     you change the RM here, add their email to that secret too. */
 
 };
 

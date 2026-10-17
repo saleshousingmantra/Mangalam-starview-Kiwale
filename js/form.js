@@ -10,7 +10,7 @@
  *  - Double-submit protection
  *  - Error focus + scroll
  *  - Success message
- *  - Google Apps Script email notification
+ *  - Email to the Relationship Manager (send-enquiry-email Edge Function)
  *  - Thank-you page redirect
  *
  * Load order in index.html:
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const SUPABASE_URL = CONFIG.SUPABASE_URL;
     const SUPABASE_ANON_KEY = CONFIG.SUPABASE_ANON_KEY;
-    const EMAIL_SERVICE_URL = CONFIG.EMAIL_SERVICE_URL;
+    const EMAIL_FUNCTION_NAME = CONFIG.EMAIL_FUNCTION_NAME;
     const SUPABASE_TABLE = CONFIG.SUPABASE_TABLE || "enquiries";
     const DEFAULT_PROJECT_NAME = CONFIG.PROJECT_NAME || "Mangalam Starview, Kiwale, Pune";
 
@@ -157,46 +157,41 @@ document.addEventListener("DOMContentLoaded", function () {
        SEND EMAIL NOTIFICATION
     ===================================================== */
 
-    async function sendEmailNotification(name, phone, email, interest, project, managerName, managerEmail, source, sourceLink) {
+    async function sendEmailNotification(name, phone, email, interest, project, developer, managerName, managerEmail, source, sourceLink) {
         try {
             console.log("Sending email notification...");
 
-            if (!EMAIL_SERVICE_URL) {
-                console.warn("EMAIL_SERVICE_URL not set in config.js — skipping email notification.");
+            if (!EMAIL_FUNCTION_NAME) {
+                console.warn("EMAIL_FUNCTION_NAME not set in config.js — skipping email notification.");
                 return false;
             }
 
             /*
-             * Google Apps Script is used only as an email
-             * notification service. no-cors is required because
-             * Apps Script does not return normal CORS headers,
-             * so we never try to read the response body.
-             *
-             * Note: who actually receives/CCs this email is NOT
-             * decided here — Code.gs uses its own fixed constants
-             * for that (see the note at the top of that file).
-             * manager_name/manager_email below are sent only as
-             * reference content shown inside the email body.
+             * The send-enquiry-email Edge Function emails the
+             * enquiry to the Relationship Manager via Brevo.
+             * It only sends to RM addresses allow-listed in its
+             * secrets, so manager_email here cannot redirect the
+             * email anywhere else (see the function's header).
              */
 
-            await fetch(EMAIL_SERVICE_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
+            const { error } = await supabaseClient.functions.invoke(EMAIL_FUNCTION_NAME, {
+                body: {
                     name: name,
                     phone: phone,
                     email: email || "",
                     interest: interest || "",
                     project: project || DEFAULT_PROJECT_NAME,
+                    developer: developer || "",
                     manager_name: managerName || "",
                     manager_email: managerEmail || "",
                     source: source || "",
                     source_link: sourceLink || ""
-                })
+                }
             });
 
-            console.log("Email notification request sent.");
+            if (error) throw error;
+
+            console.log("Email notification sent.");
             return true;
 
         } catch (error) {
@@ -403,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }));
 
-                await sendEmailNotification(name, phone, email, interest, project, managerName, managerEmail, source, sourceLink);
+                await sendEmailNotification(name, phone, email, interest, project, developer, managerName, managerEmail, source, sourceLink);
 
                 showSuccessMessage(form);
                 form.reset();
