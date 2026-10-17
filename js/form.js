@@ -10,7 +10,6 @@
  *  - Double-submit protection
  *  - Error focus + scroll
  *  - Success message
- *  - Email to the Relationship Manager (send-enquiry-email Edge Function)
  *  - Thank-you page redirect
  *
  * Load order in index.html:
@@ -33,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const SUPABASE_URL = CONFIG.SUPABASE_URL;
     const SUPABASE_ANON_KEY = CONFIG.SUPABASE_ANON_KEY;
-    const EMAIL_FUNCTION_NAME = CONFIG.EMAIL_FUNCTION_NAME;
     const SUPABASE_TABLE = CONFIG.SUPABASE_TABLE || "enquiries";
     const DEFAULT_PROJECT_NAME = CONFIG.PROJECT_NAME || "Mangalam Starview, Kiwale, Pune";
 
@@ -150,58 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 message.classList.remove("active");
                 form.style.display = "";
             }, 6000);
-        }
-    }
-
-    /* =====================================================
-       SEND EMAIL NOTIFICATION
-    ===================================================== */
-
-    async function sendEmailNotification(name, phone, email, interest, project, developer, managerName, managerEmail, source, sourceLink) {
-        try {
-            console.log("Sending email notification...");
-
-            if (!EMAIL_FUNCTION_NAME) {
-                console.warn("EMAIL_FUNCTION_NAME not set in config.js — skipping email notification.");
-                return false;
-            }
-
-            /*
-             * The send-enquiry-email Edge Function emails the
-             * enquiry to the Relationship Manager via Brevo.
-             * It only sends to RM addresses allow-listed in its
-             * secrets, so manager_email here cannot redirect the
-             * email anywhere else (see the function's header).
-             */
-
-            const { error } = await supabaseClient.functions.invoke(EMAIL_FUNCTION_NAME, {
-                body: {
-                    name: name,
-                    phone: phone,
-                    email: email || "",
-                    interest: interest || "",
-                    project: project || DEFAULT_PROJECT_NAME,
-                    developer: developer || "",
-                    manager_name: managerName || "",
-                    manager_email: managerEmail || "",
-                    source: source || "",
-                    source_link: sourceLink || ""
-                }
-            });
-
-            if (error) throw error;
-
-            console.log("Email notification sent.");
-            return true;
-
-        } catch (error) {
-            console.error("Email notification error:", error);
-
-            /*
-             * Do not block the user's enquiry — the record has
-             * already been saved successfully in Supabase.
-             */
-            return false;
         }
     }
 
@@ -398,7 +344,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }));
 
-                await sendEmailNotification(name, phone, email, interest, project, developer, managerName, managerEmail, source, sourceLink);
+                /*
+                 * No email call here: a database trigger on the
+                 * enquiries table emails every new row to the RM in
+                 * manager_email (send-enquiry-email Edge Function).
+                 */
 
                 showSuccessMessage(form);
                 form.reset();

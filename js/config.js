@@ -18,10 +18,6 @@ window.SITE_CONFIG = {
   SUPABASE_ANON_KEY:
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnenB5dG9jeGhqenhzb3Brcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjg0MDcsImV4cCI6MjEwMTUwNDQwN30.pMm_t48EOxFd2pnbu2gy4y7EK8fzmem3H4zbbpiqNJ4",
 
-  /* Supabase Edge Function that emails each new enquiry to the
-     assigned Relationship Manager (via Brevo) */
-  EMAIL_FUNCTION_NAME: "send-enquiry-email",
-
   /* Supabase table that stores enquiries */
   SUPABASE_TABLE: "enquiries",
 
@@ -39,11 +35,13 @@ window.SITE_CONFIG = {
   DEFAULT_MANAGER_EMAIL: "amit.housingmantrapune@gmail.com"
 
   /* NOTE ON EMAIL ROUTING:
-     The enquiry email goes to DEFAULT_MANAGER_EMAIL, but only if
-     that address is listed in the ALLOWED_MANAGER_EMAILS secret of
-     the send-enquiry-email function (config.js runs in the browser
-     and can be spoofed). Otherwise it goes to FALLBACK_EMAIL. When
-     you change the RM here, add their email to that secret too. */
+     Every new enquiry row is emailed (by a database trigger and the
+     send-enquiry-email Edge Function) to the manager_email saved on
+     it, i.e. DEFAULT_MANAGER_EMAIL. Only RM addresses on the
+     function's allow-list (ALLOWED_MANAGER_EMAILS) are mailed —
+     config.js runs in the browser and can be spoofed. Any other
+     address falls back to FALLBACK_EMAIL. When you assign a new RM
+     here, add their email to that allow-list too. */
 
 };
 
