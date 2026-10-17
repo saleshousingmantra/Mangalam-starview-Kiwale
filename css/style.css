@@ -1567,3 +1567,30 @@ textarea.form-control {
     .amenity .icon {
      margin: 0 auto 10px;}
 }
+/* =====================================================
+   FORM STATES + PAGE LOADER (used by js/form.js, js/index.js)
+===================================================== */
+.form-control.is-invalid {
+    border-color: #d93025;
+}
+
+.enquiry-form button[type="submit"]:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.page-loader-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    width: 0;
+    height: 3px;
+    background: var(--gold2);
+    transition: width .2s ease, opacity .4s ease;
+    pointer-events: none;
+}
+
+.page-loader-bar.is-done {
+    opacity: 0;
+}
