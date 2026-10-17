@@ -41,6 +41,7 @@ import { type Detail, escapeHtml, renderHtml } from "./template.ts";
 const DEFAULT_ALLOWED = [
   "amit.housingmantrapune@gmail.com",
   "manikhousingmantrapune@gmail.com",
+  "rishabh.housingmantra@gmail.com",
 ];
 const DEFAULT_FALLBACK = "sales.housingmantra@gmail.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
