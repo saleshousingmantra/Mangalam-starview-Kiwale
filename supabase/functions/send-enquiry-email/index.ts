@@ -27,9 +27,10 @@
  *   BREVO_API_KEY           Brevo API key (xkeysib-...)       required
  *   BREVO_SENDER_EMAIL      a sender verified in Brevo         required
  *   BREVO_SENDER_NAME       default "Housing Mantra"
- *   ALLOWED_MANAGER_EMAILS  comma list of RM emails that may receive
- *                           enquiries (default: see DEFAULT_ALLOWED)
- *   FALLBACK_EMAIL          gets rows with no / unknown RM
+ *   ALLOWED_MANAGER_EMAILS  OPTIONAL comma list. When set, only RM emails on
+ *                           it may receive enquiries; when unset (default)
+ *                           the manager_email saved on the enquiry is used
+ *   FALLBACK_EMAIL          gets rows with no valid manager_email
  *                           (default: sales.housingmantra@gmail.com)
  *   CC_EMAILS               optional comma list copied on every email
  * ==========================================================
@@ -38,11 +39,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { type Detail, escapeHtml, renderHtml } from "./template.ts";
 
-const DEFAULT_ALLOWED = [
-  "amit.housingmantrapune@gmail.com",
-  "manikhousingmantrapune@gmail.com",
-  "rishabh.housingmantra@gmail.com",
-];
+const MAX_MANAGER_EMAILS = 5;
 const DEFAULT_FALLBACK = "sales.housingmantra@gmail.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -142,8 +139,8 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("BREVO_API_KEY");
   const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
   const senderName = Deno.env.get("BREVO_SENDER_NAME") || "Housing Mantra";
-  const allowed = emailList(Deno.env.get("ALLOWED_MANAGER_EMAILS"));
-  const allowedManagers = allowed.length ? allowed : DEFAULT_ALLOWED;
+  /* Optional restriction: only applied when the secret is set */
+  const allowedManagers = emailList(Deno.env.get("ALLOWED_MANAGER_EMAILS"));
   const fallbackEmail =
     text(Deno.env.get("FALLBACK_EMAIL")).toLowerCase() || DEFAULT_FALLBACK;
   const ccEmails = emailList(Deno.env.get("CC_EMAILS"));
@@ -154,10 +151,15 @@ Deno.serve(async (req) => {
     return json(500, { error: "Email service is not configured" });
   }
 
-  /* PICK RECIPIENTS — the RM(s) on the row, if allow-listed */
+  /* PICK RECIPIENTS — the RM email(s) saved on the enquiry itself.
+     Any valid address is used directly; the optional
+     ALLOWED_MANAGER_EMAILS secret narrows it if you ever set it. */
   const managerEmails = jsonbStrings(row.manager_email)
+    .flatMap((e) => e.split(","))
     .map((e) => e.trim().toLowerCase())
-    .filter((e) => allowedManagers.includes(e));
+    .filter((e) => EMAIL_RE.test(e))
+    .filter((e) => !allowedManagers.length || allowedManagers.includes(e))
+    .slice(0, MAX_MANAGER_EMAILS);
   const managerName = jsonbStrings(row.manager_name).join(", ");
   const toRM = managerEmails.length > 0;
   const toEmails = toRM ? [...new Set(managerEmails)] : [fallbackEmail];
